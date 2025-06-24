@@ -1,4 +1,4 @@
-getgenv().d = "client"
+getgenv().d = "Made by drip"
 local d = getgenv().d
 if not d:lower():find(("racs"):reverse()) then
     do return end
@@ -16,7 +16,7 @@ function CrearDanone(Options)
     task.spawn(function()
 
         Options = Options or {}
-        if d:lower() ~= "client" then return "drip" end
+        if d:lower() ~= "made by drip" then return "you made me mad so code wont load ^u^" end
 
         local Danone = {
             Text = Options.Text or "Danones patrocina este espacio",
@@ -56,7 +56,7 @@ function CrearDanone(Options)
         end
         ErDanone:Remove()
 
-        return (d:find(("ac"):reverse())and d:sub(9,10)=='Sc' and d=="client") and "Er Danone fue vendido" or (function()repeat until not not nil end)()
+        return (d:find(("ac"):reverse())and d:sub(9,10)=='Sc' and d=="Made by Scar") and "Er Danone fue vendido" or (function()repeat until not not nil end)()
     end)
 end
 
@@ -74,7 +74,7 @@ local list = {
     --
     [66654135] = "",
     
-    --blue lock
+    --
     [1342991001] = "",
     
     --Fisch
