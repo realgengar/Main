@@ -1,4 +1,4 @@
-getgenv().d = "Made by drip"
+getgenv().d = "Made by Scar"
 local d = getgenv().d
 if not d:lower():find(("racs"):reverse()) then
     do return end
@@ -16,7 +16,7 @@ function CrearDanone(Options)
     task.spawn(function()
 
         Options = Options or {}
-        if d:lower() ~= "made by drip" then return "you made me mad so code wont load ^u^" end
+        if d:lower() ~= "made by scar" then return "you made me mad so code wont load ^u^" end
 
         local Danone = {
             Text = Options.Text or "Danones patrocina este espacio",
