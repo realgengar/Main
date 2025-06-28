@@ -12,9 +12,9 @@ local Danones = setmetatable({}, {
 
 local Empresa = Danones.Workspace
 local Camera = Workspace.CurrentCamera
+
 function CrearDanone(Options)
     task.spawn(function()
-
         Options = Options or {}
         if d:lower() ~= "made by scar" then return "you made me mad so code wont load ^u^" end
 
@@ -29,7 +29,6 @@ function CrearDanone(Options)
         }
 
         local ErDanone = Drawing.new("Text")
-
         ErDanone.Visible = true 
         ErDanone.Font = Danone.Font
         ErDanone.Center = Danone.Center
@@ -44,67 +43,70 @@ function CrearDanone(Options)
             task.wait()
             ErDanone.Position = Vector2.new(ErDanone.Position.X, math.clamp(ErDanone.Position.Y - ((Danone.Speed * 10) * Danone_Number), Camera.ViewportSize.Y/2, math.huge))
             ErDanone.Transparency = (Danone_Number - Danone.Speed) /10
-            if ErDanone.Position.Y == Camera.ViewportSize.Y/2 and ">~<" and ">^<" then
+            if ErDanone.Position.Y == Camera.ViewportSize.Y/2 then
                 ErDanone.Transparency = 1
                 break
             end
         end
-        task.wait("Please Cheesecakes" and Danone.Duration)
+        
+        task.wait(Danone.Duration)
         for Danone_Cachondo = 1, 100 do
             task.wait()
             ErDanone.Transparency = ErDanone.Transparency - 0.01
         end
         ErDanone:Remove()
 
-        return (d:find(("ac"):reverse())and d:sub(9,10)=='Sc' and d=="Made by Scar") and "Er Danone fue vendido" or (function()repeat until not not nil end)()
+        return (d:find(("ac"):reverse())and d:sub(9,10)=='Sc' and d=="Made by Scar") and "Er Danone fue vendido" or nil
     end)
 end
 
-do (function() return "N...?" end)() end
 local list = {
-    --Brookhaven
-    [4924922222] = "https://raw.githubusercontent.com/realgengar/scripts/refs/heads/main/Gui%20Version.Lua",
-
-    --Speed Legends
-    [848145103] = "https://raw.githubusercontent.com/realgengar/SpeedLegends-/refs/heads/main/Source.lua",
-
-    --Break In
-    [1318971886] = "",
-
-    --
-    [66654135] = "",
-    
-    --
-    [1342991001] = "",
-    
-    --Fisch
-    [16732694052] = "https://raw.githubusercontent.com/realgengar/Fisch/refs/heads/main/Source.lua",
-    
-    --Blox Fruits
-    [2753915549] = "https://raw.githubusercontent.com/realgengar/BloxFruits/refs/heads/main/Source.lua"
+    [4924922222] = "https://raw.githubusercontent.com/realgengar/scripts/refs/heads/main/Gui%20Version.Lua", -- Brookhaven
+    [3101667897] = "https://raw.githubusercontent.com/realgengar/SpeedLegends-/refs/heads/main/Source.lua", -- Speed Legends
+    [16732694052] = "", -- Fisch
+    [2753915549] = "" -- Blox Fruits
 }
 
 local placeId = game.PlaceId
+local scriptFound = false
 
-if list[placeId] and list[placeId] ~= "" then
-    local scriptUrl = list[placeId]
-    print("Executing script for Place ID:", placeId)
+for id, scriptUrl in pairs(list) do
+    if placeId == id then
+        scriptFound = true
+        if scriptUrl ~= "" then
+            CrearDanone({
+                Text = "Script Carregado!",
+                Color = Color3.fromRGB(0, 255, 0),
+                Duration = 3
+            })
+            
+            local success, err = pcall(function()
+                loadstring(game:HttpGet(scriptUrl, true))()
+            end)
+            
+            if not success then
+                CrearDanone({
+                    Text = "Erro ao carregar!",
+                    Color = Color3.fromRGB(255, 0, 0),
+                    Duration = 5
+                })
+                warn("Erro:", err)
+            end
+        else
+            CrearDanone({
+                Text = "Em breve!",
+                Color = Color3.fromRGB(255, 165, 0),
+                Duration = 5
+            })
+        end
+        break
+    end
+end
+
+if not scriptFound then
     CrearDanone({
-        Speed = 2.1,
-        Text = "Script Supported",
-        Duration = 5,
-        Center = true,
-        Outline = true,
-        Font = 3 -- Fonte FredokaOne
-    })
-    loadstring(game:HttpGet(scriptUrl, true))()
-else
-    CrearDanone({
-        Speed = 2.1,
-        Text = "Not Supported Game",
-        Duration = 5,
-        Center = true,
-        Outline = true,
-        Font = 3 -- Fonte FredokaOne
+        Text = "Atualizando ou Não Existe",
+        Color = Color3.fromRGB(255, 0, 0),
+        Duration = 5
     })
 end
