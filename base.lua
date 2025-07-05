@@ -64,7 +64,7 @@ local list = {
     [4924922222] = "https://raw.githubusercontent.com/realgengar/scripts/refs/heads/main/Gui%20Version.Lua", -- Brookhaven
     [3101667897] = "https://raw.githubusercontent.com/realgengar/SpeedLegends-/refs/heads/main/Source.lua", -- Speed Legends
     [13864661000] = "https://raw.githubusercontent.com/realgengar/BreakIn2/refs/heads/main/Source.lua", -- break
-   -- [2753915549] = "" -- Blox Fruits
+    [3756501373] = "https://raw.githubusercontent.com/realgengar/MemeSea/refs/heads/main/Source.lua" -- Blox Fruits
 }
 
 local placeId = game.PlaceId
