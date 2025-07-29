@@ -1,0 +1,375 @@
+--[[
+  Creator: Magnus999
+  Open Source deixe os créditos!!!!!
+  Modificado para aceitar prefixo "Drip-"
+]]
+local ScreenGui = Instance.new("ScreenGui")
+local Frame = Instance.new("Frame")
+local UICorner = Instance.new("UICorner")
+local UIGradient = Instance.new("UIGradient")
+local Shadow = Instance.new("Frame")
+local ShadowCorner = Instance.new("UICorner")
+
+local Header = Instance.new("Frame")
+local HeaderCorner = Instance.new("UICorner")
+local HeaderGradient = Instance.new("UIGradient")
+local Title = Instance.new("TextLabel")
+local CloseButton = Instance.new("TextButton")
+local CloseCorner = Instance.new("UICorner")
+
+local GameidContainer = Instance.new("Frame")
+local GameidCorner = Instance.new("UICorner")
+local Gameid = Instance.new("TextBox")
+local GameidLabel = Instance.new("TextLabel")
+
+local JobidContainer = Instance.new("Frame")
+local JobidCorner = Instance.new("UICorner")
+local Jobid = Instance.new("TextBox")
+local JobidLabel = Instance.new("TextLabel")
+
+local ButtonContainer = Instance.new("Frame")
+local ButtonCorner = Instance.new("UICorner")
+local ButtonGradient = Instance.new("UIGradient")
+local TextButton = Instance.new("TextButton")
+local ButtonUICorner = Instance.new("UICorner")
+
+local FeedbackLabel = Instance.new("TextLabel")
+local Credits = Instance.new("TextLabel")
+
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.ResetOnSpawn = false
+
+Shadow.Parent = ScreenGui
+Shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Shadow.BackgroundTransparency = 0.7
+Shadow.BorderSizePixel = 0
+Shadow.Position = UDim2.new(0.5, -182, 0.5, -148)
+Shadow.Size = UDim2.new(0, 370, 0, 300)
+Shadow.ZIndex = 1
+
+ShadowCorner.CornerRadius = UDim.new(0, 15)
+ShadowCorner.Parent = Shadow
+
+
+Frame.Parent = ScreenGui
+Frame.BackgroundColor3 = Color3.fromRGB(45, 35, 85)
+Frame.BackgroundTransparency = 0.1
+Frame.BorderSizePixel = 0
+Frame.Position = UDim2.new(0.5, -180, 0.5, -150)
+Frame.Size = UDim2.new(0, 360, 0, 290)
+Frame.ZIndex = 2
+
+UICorner.CornerRadius = UDim.new(0, 15)
+UICorner.Parent = Frame
+
+UIGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(75, 45, 135)),
+    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(45, 25, 95))
+}
+UIGradient.Rotation = 45
+UIGradient.Parent = Frame
+
+Header.Parent = Frame
+Header.BackgroundColor3 = Color3.fromRGB(95, 65, 155)
+Header.BackgroundTransparency = 0.3
+Header.BorderSizePixel = 0
+Header.Position = UDim2.new(0, 0, 0, 0)
+Header.Size = UDim2.new(1, 0, 0, 50)
+Header.ZIndex = 3
+
+HeaderCorner.CornerRadius = UDim.new(0, 15)
+HeaderCorner.Parent = Header
+
+HeaderGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(125, 85, 185)),
+    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(85, 55, 145))
+}
+HeaderGradient.Rotation = 90
+HeaderGradient.Parent = Header
+
+Title.Parent = Header
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.new(0, 20, 0, 0)
+Title.Size = UDim2.new(0, 250, 1, 0)
+Title.Font = Enum.Font.GothamBold
+Title.Text = "Server Teleporter | Drip"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 20
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.ZIndex = 4
+
+CloseButton.Parent = Header
+CloseButton.BackgroundColor3 = Color3.fromRGB(255, 85, 85)
+CloseButton.BorderSizePixel = 0
+CloseButton.Position = UDim2.new(1, -40, 0, 10)
+CloseButton.Size = UDim2.new(0, 30, 0, 30)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.Text = "×"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 18
+CloseButton.ZIndex = 4
+
+CloseCorner.CornerRadius = UDim.new(0, 8)
+CloseCorner.Parent = CloseButton
+
+GameidContainer.Parent = Frame
+GameidContainer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+GameidContainer.BackgroundTransparency = 0.9
+GameidContainer.BorderSizePixel = 0
+GameidContainer.Position = UDim2.new(0, 30, 0, 80)
+GameidContainer.Size = UDim2.new(0, 300, 0, 40)
+GameidContainer.ZIndex = 3
+
+GameidCorner.CornerRadius = UDim.new(0, 10)
+GameidCorner.Parent = GameidContainer
+
+Gameid.Name = "Gameid"
+Gameid.Parent = GameidContainer
+Gameid.BackgroundTransparency = 1
+Gameid.Position = UDim2.new(0, 15, 0, 20)
+Gameid.Size = UDim2.new(1, -30, 0, 20)
+Gameid.Font = Enum.Font.Gotham
+Gameid.PlaceholderText = "Game ID (opcional se já estiver no jogo)"
+Gameid.Text = ""
+Gameid.TextColor3 = Color3.fromRGB(255, 255, 255)
+Gameid.TextSize = 14
+Gameid.ZIndex = 4
+
+GameidLabel.Parent = GameidContainer
+GameidLabel.BackgroundTransparency = 1
+GameidLabel.Position = UDim2.new(0, 15, 0, 2)
+GameidLabel.Size = UDim2.new(1, -30, 0, 18)
+GameidLabel.Font = Enum.Font.GothamBold
+GameidLabel.Text = "GAME ID"
+GameidLabel.TextColor3 = Color3.fromRGB(200, 170, 255)
+GameidLabel.TextSize = 12
+GameidLabel.TextXAlignment = Enum.TextXAlignment.Left
+GameidLabel.ZIndex = 4
+
+JobidContainer.Parent = Frame
+JobidContainer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+JobidContainer.BackgroundTransparency = 0.9
+JobidContainer.BorderSizePixel = 0
+JobidContainer.Position = UDim2.new(0, 30, 0, 140)
+JobidContainer.Size = UDim2.new(0, 300, 0, 40)
+JobidContainer.ZIndex = 3
+
+JobidCorner.CornerRadius = UDim.new(0, 10)
+JobidCorner.Parent = JobidContainer
+
+Jobid.Name = "Jobid"
+Jobid.Parent = JobidContainer
+Jobid.BackgroundTransparency = 1
+Jobid.Position = UDim2.new(0, 15, 0, 20)
+Jobid.Size = UDim2.new(1, -30, 0, 20)
+Jobid.Font = Enum.Font.Gotham
+Jobid.PlaceholderText = "ADD JOB ID AQUI (ex: Drip-jobid123)"
+Jobid.Text = ""
+Jobid.TextColor3 = Color3.fromRGB(255, 255, 255)
+Jobid.TextSize = 14
+Jobid.ZIndex = 4
+
+JobidLabel.Parent = JobidContainer
+JobidLabel.BackgroundTransparency = 1
+JobidLabel.Position = UDim2.new(0, 15, 0, 2)
+JobidLabel.Size = UDim2.new(1, -30, 0, 18)
+JobidLabel.Font = Enum.Font.GothamBold
+JobidLabel.Text = "JOB ID (com prefixo Drip-)"
+JobidLabel.TextColor3 = Color3.fromRGB(200, 170, 255)
+JobidLabel.TextSize = 12
+JobidLabel.TextXAlignment = Enum.TextXAlignment.Left
+JobidLabel.ZIndex = 4
+
+ButtonContainer.Parent = Frame
+ButtonContainer.BackgroundColor3 = Color3.fromRGB(135, 95, 215)
+ButtonContainer.BorderSizePixel = 0
+ButtonContainer.Position = UDim2.new(0, 30, 0, 200)
+ButtonContainer.Size = UDim2.new(0, 300, 0, 45)
+ButtonContainer.ZIndex = 3
+
+ButtonCorner.CornerRadius = UDim.new(0, 12)
+ButtonCorner.Parent = ButtonContainer
+
+ButtonGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(155, 105, 235)),
+    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(115, 75, 195))
+}
+ButtonGradient.Rotation = 45
+ButtonGradient.Parent = ButtonContainer
+
+TextButton.Parent = ButtonContainer
+TextButton.BackgroundTransparency = 1
+TextButton.Size = UDim2.new(1, 0, 1, 0)
+TextButton.Font = Enum.Font.GothamBold
+TextButton.Text = "Teleporta"
+TextButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextButton.TextSize = 16
+TextButton.ZIndex = 4
+
+FeedbackLabel.Name = "FeedbackLabel"
+FeedbackLabel.Parent = Frame
+FeedbackLabel.BackgroundTransparency = 1
+FeedbackLabel.Position = UDim2.new(0, 30, 0, 255)
+FeedbackLabel.Size = UDim2.new(0, 300, 0, 20)
+FeedbackLabel.Font = Enum.Font.Gotham
+FeedbackLabel.Text = ""
+FeedbackLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+FeedbackLabel.TextSize = 12
+FeedbackLabel.TextXAlignment = Enum.TextXAlignment.Center
+FeedbackLabel.ZIndex = 4
+
+Credits.Name = "Credits"
+Credits.Parent = Frame
+Credits.BackgroundTransparency = 1
+Credits.Position = UDim2.new(0, 0, 1, -25)
+Credits.Size = UDim2.new(1, 0, 0, 20)
+Credits.Font = Enum.Font.Gotham
+Credits.Text = "️@Magnus999"
+Credits.TextColor3 = Color3.fromRGB(150, 120, 200)
+Credits.TextSize = 11
+Credits.TextXAlignment = Enum.TextXAlignment.Center
+Credits.ZIndex = 4
+
+local function makeDraggable()
+    local UserInputService = game:GetService("UserInputService")
+    
+    local gui = Frame
+    local dragging = false
+    local dragInput
+    local dragStart
+    local startPos
+    
+    local function update(input)
+        local delta = input.Position - dragStart
+        gui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        Shadow.Position = UDim2.new(gui.Position.X.Scale, gui.Position.X.Offset - 2, gui.Position.Y.Scale, gui.Position.Y.Offset + 2)
+    end
+    
+    Header.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = gui.Position
+            
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+    
+    Header.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
+        end
+    end)
+end
+
+local function setupCloseButton()
+    CloseButton.MouseButton1Click:Connect(function()
+        local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+        local tween = game:GetService("TweenService"):Create(Frame, tweenInfo, {Size = UDim2.new(0, 0, 0, 0)})
+        local shadowTween = game:GetService("TweenService"):Create(Shadow, tweenInfo, {Size = UDim2.new(0, 0, 0, 0)})
+        
+        tween:Play()
+        shadowTween:Play()
+        
+        tween.Completed:Connect(function()
+            ScreenGui:Destroy()
+        end)
+    end)
+end
+
+local function setupTeleport()
+    local TeleportService = game:GetService("TeleportService")
+    local Players = game:GetService("Players")
+    
+    local function teleport()
+        local placeId = tonumber(Gameid.Text)
+        local jobIdInput = Jobid.Text
+        local jobId = ""
+        
+        -- Verifica se o Job ID está vazio
+        if jobIdInput == "" or jobIdInput == nil then
+            FeedbackLabel.Text = "📌 Job ID necessário!"
+            FeedbackLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+            wait(3)
+            FeedbackLabel.Text = ""
+            return
+        end
+        
+        -- Processa o Job ID com prefixo "Drip-"
+        if string.sub(jobIdInput, 1, 5) == "Drip-" then
+            -- Se já tem o prefixo "Drip-", remove ele para usar apenas o ID
+            jobId = string.sub(jobIdInput, 6)
+            FeedbackLabel.Text = "✅ Prefixo Drip detectado!"
+            FeedbackLabel.TextColor3 = Color3.fromRGB(100, 255, 150)
+        else
+            -- Se não tem prefixo, adiciona automaticamente
+            jobId = jobIdInput
+            FeedbackLabel.Text = "➕ Adicionando prefixo Drip..."
+            FeedbackLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
+        end
+        
+        -- Verifica se o Job ID processado não está vazio
+        if jobId == "" then
+            FeedbackLabel.Text = "❌ Job ID inválido!"
+            FeedbackLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+            wait(3)
+            FeedbackLabel.Text = ""
+            return
+        end
+        
+        FeedbackLabel.Text = "🔄 Preparando teleporte..."
+        FeedbackLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
+        
+        wait(1)
+        
+        if placeId and placeId ~= 0 then
+            FeedbackLabel.Text = "🌍 Teleportando para Game: " .. placeId
+            FeedbackLabel.TextColor3 = Color3.fromRGB(100, 255, 150)
+            TeleportService:TeleportToPlaceInstance(placeId, jobId, Players.LocalPlayer)
+        else
+            FeedbackLabel.Text = "⚡️ Teleportando para servidor atual"
+            FeedbackLabel.TextColor3 = Color3.fromRGB(100, 255, 150)
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, jobId, Players.LocalPlayer)
+        end
+    end
+    
+    TextButton.MouseButton1Click:Connect(teleport)
+    
+    TextButton.MouseEnter:Connect(function()
+        local tween = game:GetService("TweenService"):Create(ButtonContainer, TweenInfo.new(0.2), {Size = UDim2.new(0, 310, 0, 48)})
+        tween:Play()
+    end)
+    
+    TextButton.MouseLeave:Connect(function()
+        local tween = game:GetService("TweenService"):Create(ButtonContainer, TweenInfo.new(0.2), {Size = UDim2.new(0, 300, 0, 45)})
+        tween:Play()
+    end)
+end
+
+local function animateEntrance()
+    Frame.Size = UDim2.new(0, 0, 0, 0)
+    Shadow.Size = UDim2.new(0, 0, 0, 0)
+    
+    local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+    local tween = game:GetService("TweenService"):Create(Frame, tweenInfo, {Size = UDim2.new(0, 360, 0, 290)})
+    local shadowTween = game:GetService("TweenService"):Create(Shadow, tweenInfo, {Size = UDim2.new(0, 370, 0, 300)})
+    
+    tween:Play()
+    shadowTween:Play()
+end
+
+coroutine.wrap(makeDraggable)()
+coroutine.wrap(setupCloseButton)()
+coroutine.wrap(setupTeleport)()
+coroutine.wrap(animateEntrance)()
