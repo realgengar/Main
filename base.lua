@@ -1,113 +1,161 @@
-
-getgenv().d = "Made by Scar"
-local d = getgenv().d
-if not d:lower():find(("racs"):reverse()) then
-    do return end
-end
-
-local Danones = setmetatable({}, {
-    __index = function(Tipo, Sabor)
-        return d:lower():find(("racs"):reverse()) and game:GetService(Sabor) or (function()repeat until not not nil end)()
-    end
-})
-
-local Empresa = Danones.Workspace
-local Camera = Workspace.CurrentCamera
-
-function CrearDanone(Options)
-    task.spawn(function()
-        Options = Options or {}
-        if d:lower() ~= "made by scar" then return "you made me mad so code wont load ^u^" end
-
-        local Danone = {
-            Text = Options.Text or "Danones patrocina este espacio",
-            Color = Options.Color or Color3.fromRGB(111, 0, 255),
-            Duration = Options.Duration or 3,
-            Center = Options.Center or true,
-            Outline = Options.Outline or true,
-            Speed = (Options.Speed or 0.5) + 2,
-            Font = Options.Font or 3 -- 3 corresponde a FredokaOne
-        }
-
-        local ErDanone = Drawing.new("Text")
-        ErDanone.Visible = true 
-        ErDanone.Font = Danone.Font
-        ErDanone.Center = Danone.Center
-        ErDanone.Size = 20
-        ErDanone.Outline = Danone.Outline 
-        ErDanone.Transparency = 1
-        ErDanone.Color = Danone.Color
-        ErDanone.Text = Danone.Text
-        ErDanone.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
-
-        for Danone_Number = 0, 10, Danone.Speed do
-            task.wait()
-            ErDanone.Position = Vector2.new(ErDanone.Position.X, math.clamp(ErDanone.Position.Y - ((Danone.Speed * 10) * Danone_Number), Camera.ViewportSize.Y/2, math.huge))
-            ErDanone.Transparency = (Danone_Number - Danone.Speed) /10
-            if ErDanone.Position.Y == Camera.ViewportSize.Y/2 then
-                ErDanone.Transparency = 1
-                break
-            end
-        end
-        
-        task.wait(Danone.Duration)
-        for Danone_Cachondo = 1, 100 do
-            task.wait()
-            ErDanone.Transparency = ErDanone.Transparency - 0.01
-        end
-        ErDanone:Remove()
-
-        return (d:find(("ac"):reverse())and d:sub(9,10)=='Sc' and d=="Made by Scar") and "Er Danone fue vendido" or nil
-    end)
-end
-
-local list = {
-    [4924922222] = "https://raw.githubusercontent.com/realgengar/scripts/refs/heads/main/Gui%20Version.Lua", -- Brookhaven
-    [3101667897] = "https://raw.githubusercontent.com/realgengar/SpeedLegends-/refs/heads/main/Source.lua", -- Speed Legends
-    [13864661000] = "https://raw.githubusercontent.com/realgengar/BreakIn2/refs/heads/main/Source.lua", -- break
-    [10260193230] = "https://raw.githubusercontent.com/realgengar/MemeSea/refs/heads/main/Source.lua" -- Blox Fruits
+-- Client Games
+local ClientSource = {
+	{
+		PlacesIds = {4924922222}, 
+		ScriptUrl = "https://raw.githubusercontent.com/realgengar/scripts/refs/heads/main/Gui%20Version.Lua", true,
+		Enabled = true
+	},
+	{
+		PlacesIds = {3101667897},
+		ScriptUrl = "https://raw.githubusercontent.com/realgengar/SpeedLegends-/refs/heads/main/Source.lua", true,
+		Enabled = true
+	}
 }
 
-local placeId = game.PlaceId
-local scriptFound = false
+local fetcher = {}
+local _ENV = (getgenv or getrenv or getfenv)()
 
-for id, scriptUrl in pairs(list) do
-    if placeId == id then
-        scriptFound = true
-        if scriptUrl ~= "" then
-            CrearDanone({
-                Text = "Script Carregado!",
-                Color = Color3.fromRGB(0, 255, 0),
-                Duration = 3
-            })
-            
-            local success, err = pcall(function()
-                loadstring(game:HttpGet(scriptUrl, true))()
-            end)
-            
-            if not success then
-                CrearDanone({
-                    Text = "Erro ao carregar!",
-                    Color = Color3.fromRGB(255, 0, 0),
-                    Duration = 5
-                })
-                warn("Erro:", err)
-            end
-        else
-            CrearDanone({
-                Text = "Em breve!",
-                Color = Color3.fromRGB(255, 165, 0),
-                Duration = 5
-            })
-        end
-        break
-    end
+do
+	local last_exec = _ENV.script_execute_debounce
+	
+	if last_exec and (os.clock() - last_exec) <= 3 then
+		print("Script executado recentemente. Aguarde...")
+		return nil
+	end
+	
+	_ENV.script_execute_debounce = os.clock()
 end
 
-if not scriptFound then
-    CrearDanone({
-        Text = "Atualizando ou Não Existe",
-        Color = Color3.fromRGB(255, 0, 0),
-        Duration = 5
-    })
+local function CreateErrorMessage(Text)
+	_ENV.loadedScript = nil
+	_ENV.OnScript = false
+	local Message = Instance.new("Message", workspace)
+	Message.Text = Text
+	_ENV.error_message = Message
+	game:GetService("Debris"):AddItem(Message, 5)
+	error(Text, 2)
 end
+
+function fetcher.get(Url)
+	local success, response = pcall(function()
+		return game:HttpGet(Url)
+	end)
+	
+	if success then
+		return response
+	else
+		CreateErrorMessage("parou miséria: " .. Url .. "\nErro: " .. tostring(response))
+	end
+end
+
+-- Função para carregar e executar script
+function fetcher.load(Url)
+	print("carrega logo: " .. Url)
+	
+	local raw = fetcher.get(Url)
+	if not raw then return end
+	
+	local runFunction, errorText = loadstring(raw)
+	
+	if type(runFunction) ~= "function" then
+		CreateErrorMessage("outro erro aaaa: " .. Url .. "\nErro: " .. tostring(errorText))
+	else
+		return runFunction
+	end
+end
+
+local function IsValidPlace(Script)
+	if not Script.Enabled then
+		return false
+	end
+	
+	if Script.PlacesIds then
+		for _, placeId in ipairs(Script.PlacesIds) do
+			if placeId == game.PlaceId then
+				return true
+			end
+		end
+	end
+	
+	return false
+end
+
+local function GetGameInfo()
+	local gameInfo = {
+		PlaceId = game.PlaceId,
+		GameId = game.GameId,
+		JobId = game.JobId,
+		Name = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name or "Desconhecido"
+	}
+	
+	return gameInfo
+end
+
+local function CarrgarDripp()
+	local gameInfo = GetGameInfo()
+	print("Achouuu: " .. gameInfo.Name .. " (ID: " .. gameInfo.PlaceId .. ")")
+	
+	for _, Script in ipairs(ClientSource) do
+		if IsValidPlace(Script) then
+			print("caregando nossa senhora")
+			print("aqui carregadu: " .. Script.ScriptUrl)
+			
+			local scriptFunction = fetcher.load(Script.ScriptUrl)
+			if scriptFunction then
+				local success, result = pcall(scriptFunction)
+				if success then
+					print("deu bom")
+					_ENV.loadedScript = true
+					_ENV.OnScript = true
+					return true
+				else
+					CreateErrorMessage("deu erro dnv: " .. tostring(result))
+				end
+			end
+			return false
+		end
+	end
+	
+	local supportedGames = {}
+	for _, Script in ipairs(ClientSource) do
+		if Script.Enabled then
+			for _, placeId in ipairs(Script.PlacesIds) do
+				local success, info = pcall(function()
+					return game:GetService("MarketplaceService"):GetProductInfo(placeId).Name
+				end)
+				if success then
+					table.insert(supportedGames, info .. " (" .. placeId .. ")")
+				end
+			end
+		end
+	end
+	
+	local message = "não executa que nn te script: " .. gameInfo.Name .. " (" .. gameInfo.PlaceId .. ")\n\n"
+	message = message .. "Jogos Que funciona:\n" .. table.concat(supportedGames, "\n")
+	
+	print(message)
+	
+	local Message = Instance.new("Message", workspace)
+	Message.Text = ""
+	game:GetService("Debris"):AddItem(Message, 8)
+	
+	return false
+end
+
+--[[
+do
+	local executor = syn or fluxus
+	local queueteleport = queue_on_teleport or (executor and executor.queue_on_teleport)
+	
+	if not _ENV.added_teleport_queue and type(queueteleport) == "function" then
+		_ENV.added_teleport_queue = true
+		
+		local scriptCode = string.format("loadstring(game:HttpGet('%s'))()", "https://raw.githubusercontent.com/SeuUsuario/SeuRepositorio/main/script-loader.lua")
+		pcall(queueteleport, scriptCode)
+		print("miséria caregadaaaa!")
+	end
+end
+--]]
+
+-- chama que nem a minha mãe 
+return CarrgarDripp()
