@@ -1,3 +1,37 @@
+do
+local screenGui = Instance.new("ScreenGui")
+local textLabel = Instance.new("TextLabel")
+
+screenGui.Name = "UpdateNotification"
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+screenGui.ResetOnSpawn = false
+
+textLabel.Name = "UpdateLabel"
+textLabel.Parent = screenGui
+textLabel.BackgroundTransparency = 1
+textLabel.Position = UDim2.new(0.5, 0, 0.1, 0)
+textLabel.Size = UDim2.new(0, 300, 0, 50)
+textLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+textLabel.Font = Enum.Font.SourceSansBold
+textLabel.Text = "New Update Today | Drip Client"
+textLabel.TextColor3 = Color3.fromRGB(128, 0, 128)
+textLabel.TextScaled = true
+textLabel.TextStrokeTransparency = 0
+textLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+
+task.spawn(function()
+    for i = 1, 5 do
+        textLabel.Visible = false
+        task.wait(0.3)
+        textLabel.Visible = true
+        task.wait(0.3)
+    end
+    
+    task.wait(0.5)
+    screenGui:Destroy()
+end)
+end
+
 -- Client Games
 local ClientSource = {
 	{
