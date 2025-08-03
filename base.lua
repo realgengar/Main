@@ -1,4 +1,4 @@
-do
+--[[do
 local screenGui = Instance.new("ScreenGui")
 local textLabel = Instance.new("TextLabel")
 
@@ -30,7 +30,7 @@ task.spawn(function()
     task.wait(0.5)
     screenGui:Destroy()
 end)
-end
+end]]
 
 -- Client Games
 local ClientSource = {
