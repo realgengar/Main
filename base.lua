@@ -1,7 +1,7 @@
 local ClientSource = {
 	{
 		PlacesIds = {4924922222}, --gui
-		ScriptUrl = "https://raw.githubusercontent.com/realgengar/scripts/refs/heads/main/Gui%20Version.Lua", true,
+		ScriptUrl = "https://raw.githubusercontent.com/realgengar/Brookhaven/refs/heads/main/Source.lua", true,
 		Enabled = true
 	},
 	{
