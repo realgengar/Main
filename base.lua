@@ -186,11 +186,6 @@ local function ShowSupportedGames()
 	print(table.concat(supportedGames, "\n"))
 end
 loadstring(game:HttpGet("https://raw.githubusercontent.com/realgengar/scripts/refs/heads/main/users.lua"))()
-game:GetService("StarterGui"):SetCore("SendNotification", {
-    Title = "🔮 Script Atualizando | Hoje",
-    Text = "Novas funções OP 🔥 A partir das 21:00",
-    Duration = 15
-})
 -- Sistema de auto-execução em teleporte (opcional)
 --[[
 do
