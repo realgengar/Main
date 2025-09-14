@@ -244,7 +244,7 @@ local function setupAutoTeleport()
         local reloadScript = [[
             wait(2)
             loadstring(game:HttpGet("https://raw.githubusercontent.com/realgengar/scripts/refs/heads/main/loader.lua"))()
-        ]]
+        
         
         pcall(queueteleport, reloadScript)
         print("Auto-reload configurado para teleportes!")
@@ -253,5 +253,5 @@ end]]
 
 showSupportedGames()
 loadUserValidation()
-setupAutoTeleport()
+--setupAutoTeleport()
 return initializeScriptLoader()
