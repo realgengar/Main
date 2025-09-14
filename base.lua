@@ -1,205 +1,257 @@
-local ClientSource = {
-	{
-		PlacesIds = {4924922222}, --gui
-		ScriptUrl = "https://raw.githubusercontent.com/realgengar/Brookhaven/refs/heads/main/Source.Lua", true,
-		Enabled = true
-	},
-	{
-		PlacesIds = {3101667897},--veloz
-		ScriptUrl = "https://raw.githubusercontent.com/realgengar/SpeedLegends-/refs/heads/main/Source.lua", true,
-		Enabled = true
-	},
-{
-		PlacesIds = {10260193230}, --meme
-		ScriptUrl = "https://raw.githubusercontent.com/realgengar/MemeSea/refs/heads/main/Source.lua",
-		Enabled = true
-	},
-{
-		PlacesIds = {13864661000}, --breck
-		ScriptUrl = "https://raw.githubusercontent.com/realgengar/BreakIn2/refs/heads/main/Source.lua",
-		Enabled = true
-	}
+local ScriptDatabase = {
+    {
+        PlaceIds = {4924922222}, -- Brookhaven
+        ScriptUrl = "https://raw.githubusercontent.com/realgengar/Brookhaven/refs/heads/main/Source.Lua",
+        GameName = "Brookhaven RP",
+        Enabled = true
+    },
+    {
+        PlaceIds = {3101667897}, -- Speed Legends
+        ScriptUrl = "https://raw.githubusercontent.com/realgengar/SpeedLegends-/refs/heads/main/Source.lua",
+        GameName = "Speed Legends",
+        Enabled = true
+    },
+    {
+        PlaceIds = {10260193230}, -- Meme Sea
+        ScriptUrl = "https://raw.githubusercontent.com/realgengar/MemeSea/refs/heads/main/Source.lua",
+        GameName = "Meme Sea",
+        Enabled = true
+    },
+    {
+        PlaceIds = {13864661000}, -- Break In 2
+        ScriptUrl = "https://raw.githubusercontent.com/realgengar/BreakIn2/refs/heads/main/Source.lua",
+        GameName = "Break In 2",
+        Enabled = true
+    }
 }
 
-local DripUniversal = "https://raw.githubusercontent.com/realgengar/scripts/refs/heads/main/Games.Lua" -- Universo
+local UniversalScriptUrl = "https://raw.githubusercontent.com/realgengar/scripts/refs/heads/main/Games.Lua"
 
-local fetcher = {}
-local _ENV = (getgenv or getrenv or getfenv)()
-do
-	local last_exec = _ENV.script_execute_debounce
-	
-	if last_exec and (os.clock() - last_exec) <= 3 then
-		print("up constantemente")
-		return nil
-	end
-	
-	_ENV.script_execute_debounce = os.clock()
+-- Sistema de cache e debounce
+local Environment = getgenv and getgenv() or _G
+local DEBOUNCE_TIME = 3
+
+-- Verificação de debounce
+local function checkDebounce()
+    local lastExec = Environment.script_execute_debounce
+    if lastExec and (tick() - lastExec) <= DEBOUNCE_TIME then
+        warn("Script executado recentemente. Aguarde " .. DEBOUNCE_TIME .. " segundos.")
+        return false
+    end
+    Environment.script_execute_debounce = tick()
+    return true
 end
 
-local function CreateErrorMessage(Text)
-	_ENV.loadedScript = nil
-	_ENV.OnScript = false
-	local Message = Instance.new("Message", workspace)
-	Message.Text = Text
-	_ENV.error_message = Message
-	game:GetService("Debris"):AddItem(Message, 5)
-	error(Text, 2)
+-- Sistema de notificações
+local function createNotification(text, duration, isError)
+    local message = Instance.new("Message")
+    message.Text = text
+    message.Parent = workspace
+    
+    if isError then
+        warn("ERRO: " .. text)
+    else
+        print("INFO: " .. text)
+    end
+    
+    game:GetService("Debris"):AddItem(message, duration or 3)
+    return message
 end
 
-function fetcher.get(Url)
-	local success, response = pcall(function()
-		return game:HttpGet(Url)
-	end)
-	
-	if success then
-		return response
-	else
-		CreateErrorMessage("parou miséria: " .. Url .. "\nErro: " .. tostring(response))
-	end
+-- Fetcher melhorado com retry
+local HttpService = game:GetService("HttpService")
+local function fetchScript(url, maxRetries)
+    maxRetries = maxRetries or 3
+    
+    for attempt = 1, maxRetries do
+        local success, response = pcall(function()
+            return game:HttpGet(url)
+        end)
+        
+        if success and response and #response > 0 then
+            return response
+        else
+            warn("Tentativa " .. attempt .. " falhou para: " .. url)
+            if attempt < maxRetries then
+                wait(1) -- Aguarda antes de tentar novamente
+            end
+        end
+    end
+    
+    createNotification("Falha ao baixar script: " .. url, 5, true)
+    return nil
 end
 
--- Função para carregar e executar script
-function fetcher.load(Url)
-	print("carrega logo: " .. Url)
-	local raw = fetcher.get(Url)
-	if not raw then return end
-	
-	local runFunction, errorText = loadstring(raw)
-	
-	if type(runFunction) ~= "function" then
-		CreateErrorMessage("outro erro aaaa: " .. Url .. "\nErro: " .. tostring(errorText))
-	else
-		return runFunction
-	end
+-- Carregador de script com validação
+local function loadScript(url)
+    print("Carregando script de: " .. url)
+    
+    local scriptContent = fetchScript(url)
+    if not scriptContent then
+        return nil
+    end
+    
+    local scriptFunction, errorMessage = loadstring(scriptContent)
+    if not scriptFunction then
+        createNotification("Erro ao compilar script: " .. tostring(errorMessage), 5, true)
+        return nil
+    end
+    
+    return scriptFunction
 end
 
-local function IsValidPlace(Script)
-	if not Script.Enabled then
-		return false
-	end
-	
-	if Script.PlacesIds then
-		for _, placeId in ipairs(Script.PlacesIds) do
-			if placeId == game.PlaceId then
-				return true
-			end
-		end
-	end
-	
-	return false
+-- Executor de script com tratamento de erro
+local function executeScript(scriptFunction, scriptName)
+    local success, result = pcall(scriptFunction)
+    
+    if success then
+        createNotification("Script " .. scriptName .. " carregado com sucesso!", 3)
+        Environment.loadedScript = true
+        Environment.OnScript = true
+        return true
+    else
+        createNotification("Erro ao executar " .. scriptName .. ": " .. tostring(result), 5, true)
+        return false
+    end
 end
 
-local function HasSpecificScript()
-	for _, Script in ipairs(ClientSource) do
-		if IsValidPlace(Script) then
-			return true, Script
-		end
-	end
-	return false, nil
+-- Verificar se o jogo atual tem script específico
+local function findSpecificScript()
+    local currentPlaceId = game.PlaceId
+    
+    for i, scriptData in pairs(ScriptDatabase) do
+        if scriptData.Enabled then
+            for j, placeId in pairs(scriptData.PlaceIds) do
+                if placeId == currentPlaceId then
+                    return scriptData
+                end
+            end
+        end
+    end
+    
+    return nil
 end
 
-local function GetGameInfo()
-	local gameInfo = {
-		PlaceId = game.PlaceId,
-		GameId = game.GameId,
-		JobId = game.JobId,
-		Name = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name or "Desconhecido"
-	}
-	
-	return gameInfo
+-- Obter informações do jogo atual
+local function getGameInfo()
+    local MarketplaceService = game:GetService("MarketplaceService")
+    local gameName = "Jogo Desconhecido"
+    
+    local success, info = pcall(function()
+        return MarketplaceService:GetProductInfo(game.PlaceId)
+    end)
+    
+    if success and info then
+        gameName = info.Name
+    end
+    
+    return {
+        PlaceId = game.PlaceId,
+        GameId = game.GameId,
+        JobId = game.JobId,
+        Name = gameName
+    }
 end
 
-local function ExecuteUniversalScript()
-	local gameInfo = GetGameInfo()
-	print("script universal: " .. gameInfo.Name .. " (ID: " .. gameInfo.PlaceId .. ")")
-	print("carregandu de: " .. DripUniversal)
-	
-	local scriptFunction = fetcher.load(DripUniversal)
-	if scriptFunction then
-		local success, result = pcall(scriptFunction)
-		if success then
-			print("success aiaiai")
-			_ENV.loadedScript = true
-			_ENV.OnScript = true
-			
-			local Message = Instance.new("Message", workspace)
-			Message.Text = "Script Universal"
-			game:GetService("Debris"):AddItem(Message, 3)
-			
-			return true
-		else
-			CreateErrorMessage("erro egua: " .. tostring(result))
-		end
-	end
-	return false
+-- Executar script específico do jogo
+local function executeSpecificScript(scriptData)
+    print("Executando script específico para: " .. (scriptData.GameName or "Jogo"))
+    
+    local scriptFunction = loadScript(scriptData.ScriptUrl)
+    if scriptFunction then
+        return executeScript(scriptFunction, scriptData.GameName or "Específico")
+    end
+    
+    return false
 end
 
-local function ExecuteSpecificScript(Script)
-	print("caregando nossa senhora")
-	print("aqui carregadu: " .. Script.ScriptUrl)
-	
-	local scriptFunction = fetcher.load(Script.ScriptUrl)
-	if scriptFunction then
-		local success, result = pcall(scriptFunction)
-		if success then
-			print("deu bom")
-			_ENV.loadedScript = true
-			_ENV.OnScript = true
-			return true
-		else
-			CreateErrorMessage("deu erro dnv: " .. tostring(result))
-		end
-	end
-	return false
+-- Executar script universal
+local function executeUniversalScript()
+    local gameInfo = getGameInfo()
+    print("Executando script universal para: " .. gameInfo.Name)
+    
+    local scriptFunction = loadScript(UniversalScriptUrl)
+    if scriptFunction then
+        return executeScript(scriptFunction, "Universal")
+    end
+    
+    return false
 end
 
-local function CarrgarDripp()
-	local gameInfo = GetGameInfo()
-	print("Achouuu: " .. gameInfo.Name .. " (ID: " .. gameInfo.PlaceId .. ")")
-	
-	local hasSpecific, specificScript = HasSpecificScript()
-	
-	if hasSpecific then
-		print("tem exp")
-		return ExecuteSpecificScript(specificScript)
-	else
-		print("nn certo")
-		return ExecuteUniversalScript()
-	end
+-- Mostrar jogos suportados
+local function showSupportedGames()
+    print("=== JOGOS SUPORTADOS ===")
+    local MarketplaceService = game:GetService("MarketplaceService")
+    
+    for i, scriptData in pairs(ScriptDatabase) do
+        if scriptData.Enabled then
+            for j, placeId in pairs(scriptData.PlaceIds) do
+                local success, info = pcall(function()
+                    return MarketplaceService:GetProductInfo(placeId)
+                end)
+                
+                local gameName = success and info.Name or "Nome não encontrado"
+                print("- " .. gameName .. " (ID: " .. placeId .. ")")
+            end
+        end
+    end
+    print("========================")
 end
 
-local function ShowSupportedGames()
-	local supportedGames = {}
-	for _, Script in ipairs(ClientSource) do
-		if Script.Enabled then
-			for _, placeId in ipairs(Script.PlacesIds) do
-				local success, info = pcall(function()
-					return game:GetService("MarketplaceService"):GetProductInfo(placeId).Name
-				end)
-				if success then
-					table.insert(supportedGames, info .. " (" .. placeId .. ")")
-				end
-			end
-		end
-	end
-	
-	print(table.concat(supportedGames, "\n"))
+-- Função principal
+local function initializeScriptLoader()
+    -- Verificar debounce
+    if not checkDebounce() then
+        return false
+    end
+    
+    -- Limpar estados anteriores
+    Environment.loadedScript = nil
+    Environment.OnScript = false
+    
+    -- Obter info do jogo atual
+    local gameInfo = getGameInfo()
+    print("Detectado: " .. gameInfo.Name .. " (ID: " .. gameInfo.PlaceId .. ")")
+    
+    -- Verificar se existe script específico
+    local specificScript = findSpecificScript()
+    
+    if specificScript then
+        print("Script específico encontrado!")
+        return executeSpecificScript(specificScript)
+    else
+        print("Nenhum script específico encontrado. Usando universal.")
+        return executeUniversalScript()
+    end
 end
-loadstring(game:HttpGet("https://raw.githubusercontent.com/realgengar/scripts/refs/heads/main/users.lua"))()
--- Sistema de auto-execução em teleporte (opcional)
---[[
-do
-	local executor = syn or fluxus
-	local queueteleport = queue_on_teleport or (executor and executor.queue_on_teleport)
-	
-	if not _ENV.added_teleport_queue and type(queueteleport) == "function" then
-		_ENV.added_teleport_queue = true
-		
-		local scriptCode = string.format("loadstring(game:HttpGet('%s'))()", "https://raw.githubusercontent.com/SeuUsuario/SeuRepositorio/main/script-loader.lua")
-		pcall(queueteleport, scriptCode)
-		print("miséria caregadaaaa!")
-	end
-end
---]]
 
-return CarrgarDripp()
+-- Executar validação de usuário (se necessário)
+local function loadUserValidation()
+    spawn(function()
+        pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/realgengar/scripts/refs/heads/main/users.lua"))()
+        end)
+    end)
+end
+
+--[[ Sistema de auto-execução em teleporte (opcional)
+local function setupAutoTeleport()
+    local queueteleport = queue_on_teleport or (syn and syn.queue_on_teleport)
+    
+    if queueteleport and not Environment.added_teleport_queue then
+        Environment.added_teleport_queue = true
+        
+        local reloadScript = [[
+            wait(2)
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/realgengar/scripts/refs/heads/main/loader.lua"))()
+        ]]
+        
+        pcall(queueteleport, reloadScript)
+        print("Auto-reload configurado para teleportes!")
+    end
+end]]
+
+showSupportedGames()
+loadUserValidation()
+setupAutoTeleport()
+return initializeScriptLoader()
