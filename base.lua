@@ -25,12 +25,12 @@ local ClientSource = {
         Active = true,
     },
     {
-        PlaceId = {2753915549}, --blox
+        PlaceIds = {2753915549}, --blox (CORRIGIDO: PlaceId -> PlaceIds)
         ScriptUrl = "https://raw.githubusercontent.com/realgengar/BloxFruits/refs/heads/main/Source.lua",
         Active = true,
     },
     {
-        PlaceId = {109983668079237}, --brain
+        PlaceIds = {109983668079237}, --brain (CORRIGIDO: PlaceId -> PlaceIds)
         ScriptUrl = "https://raw.githubusercontent.com/realgengar/Brainrot/refs/heads/main/Source.lua",
         Active = true,
     }
@@ -86,13 +86,24 @@ function fetcher.load(url)
     end
 end
 
+-- FUNÇÃO MELHORADA: Agora suporta tanto PlaceIds quanto PlaceId
 local function IsValidPlace(script)
     if not script.Active then
         return false
     end
 
+    -- Verifica PlaceIds (plural - formato padrão)
     if script.PlaceIds then
         for i, placeId in pairs(script.PlaceIds) do
+            if placeId == game.PlaceId then
+                return true
+            end
+        end
+    end
+
+    -- Verifica PlaceId (singular - para compatibilidade)
+    if script.PlaceId then
+        for i, placeId in pairs(script.PlaceId) do
             if placeId == game.PlaceId then
                 return true
             end
@@ -175,12 +186,16 @@ local function ShowSupportedGames()
     local games = {}
     for i, script in pairs(ClientSource) do
         if script.Active then
-            for j, placeId in pairs(script.PlaceIds) do
-                local success, info = pcall(function()
-                    return game:GetService("MarketplaceService"):GetProductInfo(placeId).Name
-                end)
-                if success then
-                    table.insert(games, info .. " (" .. placeId .. ")")
+            -- Verifica ambos os formatos
+            local placeIds = script.PlaceIds or script.PlaceId
+            if placeIds then
+                for j, placeId in pairs(placeIds) do
+                    local success, info = pcall(function()
+                        return game:GetService("MarketplaceService"):GetProductInfo(placeId).Name
+                    end)
+                    if success then
+                        table.insert(games, info .. " (" .. placeId .. ")")
+                    end
                 end
             end
         end
