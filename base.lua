@@ -25,8 +25,8 @@ local ClientSource = {
         Active = true
     },
     {
-        PlaceId = {},
-        ScriptUrl = "",
+        PlaceId = {}, --blox
+        ScriptUrl = "https://raw.githubusercontent.com/realgengar/BloxFruits/refs/heads/main/Source.lua",
         Active = true,
     },
     {
