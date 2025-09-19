@@ -25,13 +25,13 @@ local ClientSource = {
         Active = true
     },
     {
-        PlaceId = {}, --blox
+        PlaceId = {2753915549}, --blox
         ScriptUrl = "https://raw.githubusercontent.com/realgengar/BloxFruits/refs/heads/main/Source.lua",
         Active = true,
     },
     {
-        PlaceId = {},
-        ScriptUrl = "",
+        PlaceId = {109983668079237}, --brain
+        ScriptUrl = "https://raw.githubusercontent.com/realgengar/Brainrot/refs/heads/main/Source.lua",
         Active = true,
     }
 }
