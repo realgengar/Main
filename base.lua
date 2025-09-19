@@ -2,27 +2,27 @@ local ClientSource = {
     {
         PlaceIds = {4924922222}, --gui
         ScriptUrl = "https://raw.githubusercontent.com/realgengar/Brookhaven/refs/heads/main/Source.Lua",
-        Active = true
+        Active = true,
     },
     {
         PlaceIds = {3101667897}, --speed
         ScriptUrl = "https://raw.githubusercontent.com/realgengar/SpeedLegends-/refs/heads/main/Source.lua",
-        Active = true
+        Active = true,
     },
     {
         PlaceIds = {10260193230}, --meme
         ScriptUrl = "https://raw.githubusercontent.com/realgengar/MemeSea/refs/heads/main/Source.lua",
-        Active = true
+        Active = true,
     },
     {
         PlaceIds = {13864661000}, --break
         ScriptUrl = "https://raw.githubusercontent.com/realgengar/BreakIn2/refs/heads/main/Source.lua",
-        Active = true
+        Active = true,
     },
     {
         PlaceIds = {79546208627805}, --99
         ScriptUrl = "https://raw.githubusercontent.com/realgengar/night/refs/heads/main/florest.lua",
-        Active = true
+        Active = true,
     },
     {
         PlaceId = {2753915549}, --blox
