@@ -25,12 +25,12 @@ local ClientSource = {
         Active = true,
     },
     {
-        PlaceIds = {2753915549}, --blox (CORRIGIDO: PlaceId -> PlaceIds)
+        PlaceIds = {2753915549}, --blox
         ScriptUrl = "https://raw.githubusercontent.com/realgengar/BloxFruits/refs/heads/main/Source.lua",
         Active = true,
     },
     {
-        PlaceIds = {109983668079237}, --brain (CORRIGIDO: PlaceId -> PlaceIds)
+        PlaceIds = {109983668079237}, --brain
         ScriptUrl = "https://raw.githubusercontent.com/realgengar/Brainrot/refs/heads/main/Source.lua",
         Active = true,
     }
