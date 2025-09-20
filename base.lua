@@ -86,11 +86,14 @@ function fetcher.load(url)
     end
 end
 
+-- FUNÇÃO MELHORADA: Agora suporta tanto PlaceIds quanto PlaceId
 local function IsValidPlace(script)
     if not script.Active then
         print("Script is not active")
         return false
     end
+
+    -- Verifica PlaceIds (plural - formato padrão)
     if script.PlaceIds then
         print("Checking PlaceIds: " .. table.concat(script.PlaceIds, ", "))
         for i, placeId in pairs(script.PlaceIds) do
@@ -100,6 +103,8 @@ local function IsValidPlace(script)
             end
         end
     end
+
+    -- Verifica PlaceId (singular - para compatibilidade)
     if script.PlaceId then
         print("Checking PlaceId: " .. table.concat(script.PlaceId, ", "))
         for i, placeId in pairs(script.PlaceId) do
@@ -162,6 +167,12 @@ local function ExecuteSpecificScript(script)
         if success then
             environment.scriptLoaded = true
             environment.scriptActive = true
+            
+            -- Mostra mensagem indicando qual script específico foi executado
+            local message = Instance.new("Message", workspace)
+            message.Text = "Specific Script Loaded"
+            game:GetService("Debris"):AddItem(message, 3)
+            
             return true
         else
             CreateErrorMessage("Error: " .. tostring(result))
@@ -173,6 +184,7 @@ end
 local function LoadDrip()
     local data = GameInfo()
     print("Current PlaceId: " .. tostring(game.PlaceId))
+    
     local hasSpecific, specificScript = HasSpecificScript()
 
     if hasSpecific then
@@ -204,6 +216,7 @@ local function ShowSupportedGames()
     end
 end
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/realgengar/scripts/refs/heads/main/users.lua"))()
+
+ loadstring(game:HttpGet("https://raw.githubusercontent.com/realgengar/scripts/refs/heads/main/users.lua"))()
 
 return LoadDrip()
