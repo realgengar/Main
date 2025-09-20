@@ -86,25 +86,25 @@ function fetcher.load(url)
     end
 end
 
--- FUNÇÃO MELHORADA: Agora suporta tanto PlaceIds quanto PlaceId
 local function IsValidPlace(script)
     if not script.Active then
+        print("Script is not active")
         return false
     end
-
-    -- Verifica PlaceIds (plural - formato padrão)
     if script.PlaceIds then
+        print("Checking PlaceIds: " .. table.concat(script.PlaceIds, ", "))
         for i, placeId in pairs(script.PlaceIds) do
             if placeId == game.PlaceId then
+                print("MATCH FOUND! PlaceId: " .. placeId)
                 return true
             end
         end
     end
-
-    -- Verifica PlaceId (singular - para compatibilidade)
     if script.PlaceId then
+        print("Checking PlaceId: " .. table.concat(script.PlaceId, ", "))
         for i, placeId in pairs(script.PlaceId) do
             if placeId == game.PlaceId then
+                print("MATCH FOUND! PlaceId: " .. placeId)
                 return true
             end
         end
@@ -172,12 +172,15 @@ end
 
 local function LoadDrip()
     local data = GameInfo()
-
+    print("Current PlaceId: " .. tostring(game.PlaceId))
     local hasSpecific, specificScript = HasSpecificScript()
 
     if hasSpecific then
+        print("Found specific script for this game!")
+        print("Script URL: " .. specificScript.ScriptUrl)
         return ExecuteSpecificScript(specificScript)
     else
+        print("No specific script found, using universal script")
         return ExecuteUniversalScript()
     end
 end
@@ -186,7 +189,6 @@ local function ShowSupportedGames()
     local games = {}
     for i, script in pairs(ClientSource) do
         if script.Active then
-            -- Verifica ambos os formatos
             local placeIds = script.PlaceIds or script.PlaceId
             if placeIds then
                 for j, placeId in pairs(placeIds) do
