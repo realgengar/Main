@@ -218,5 +218,9 @@ end
 
 
  loadstring(game:HttpGet("https://raw.githubusercontent.com/realgengar/scripts/refs/heads/main/users.lua"))()
-
+game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "Update Hoje | 12:00 | Premium",
+        Text = "Atualização as 12hrs com funcionalidades Op",
+        Duration = 10
+    })
 return LoadDrip()
