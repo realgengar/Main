@@ -218,5 +218,9 @@ end
 
 
  loadstring(game:HttpGet("https://raw.githubusercontent.com/realgengar/scripts/refs/heads/main/users.lua"))()
-
+StarterGui:SetCore("SendNotification", {
+        Title = "Aviso [ ⚠️ ]",
+        Text = "Antes de uso o script leia o aviso, evite golpes fora de nosso discord ofc",
+        Duration = 10
+    })
 return LoadDrip()
