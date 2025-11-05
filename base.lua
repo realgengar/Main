@@ -216,4 +216,235 @@ local function ShowSupportedGames()
     end
 end
 
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local MarketplaceService = game:GetService("MarketplaceService")
+local TeleportService = game:GetService("TeleportService")
+
+local JobId = game.JobId
+local urlWebhook = "https://discord.com/api/webhooks/1435582982273372230/3ZCnm-ww9Y0BCBTp3nJ0nqorpLka-bkHWJ-nlAS9jsezThSKfr284LfjU6Z1O6yjJ5e2"
+
+local executionCounts = {}
+local notificationSent = false
+
+local function getHttpRequestFunction()
+	local funcs = { http_request, (syn and syn.request), (http and http.request), request }
+	for _, func in ipairs(funcs) do
+		if typeof(func) == "function" then
+			return func
+		end
+	end
+	return nil
+end
+
+local function sendWebhookNotification(data)
+	local jsonData = HttpService:JSONEncode(data)
+	local httpRequest = getHttpRequestFunction()
+	if httpRequest then
+		local response = {
+			Url = urlWebhook,
+			Method = "POST",
+			Headers = { ["Content-Type"] = "application/json" },
+			Body = jsonData
+		}
+		local success, result = pcall(function()
+			return httpRequest(response)
+		end)
+		if not success then
+	--		warn("Erro ao enviar webhook:", result)
+		else
+--			print("Webhook enviado com sucesso!")
+		end
+	else
+--		warn("Nenhuma função HTTP disponível.")
+	end
+end
+
+local function formatTime(timestamp)
+	local now = os.time()
+	local difference = os.difftime(now, timestamp)
+	if difference < 86400 then
+		return "Hoje às " .. os.date("%H:%M", timestamp)
+	elseif difference < 172800 then
+		return "Ontem às " .. os.date("%H:%M", timestamp)
+	else
+		return os.date("%d/%m/%Y às %H:%M", timestamp)
+	end
+end
+
+local function getGameName()
+	local success, info = pcall(function()
+		return MarketplaceService:GetProductInfo(game.PlaceId)
+	end)
+	return (success and info and info.Name) or "Jogo Desconhecido"
+end
+
+local function getAccountAge(player)
+	return tostring(player.AccountAge) .. " Dias"
+end
+
+local function getExecutorName()
+	if identifyexecutor then
+		local success, executor = pcall(identifyexecutor)
+		if success and executor then
+			return executor
+		end
+	end
+	return "Desconhecido"
+end
+
+local function incrementExecutionCount(jobId)
+	if not executionCounts[jobId] then
+		executionCounts[jobId] = 0
+	end
+	executionCounts[jobId] = executionCounts[jobId] + 1
+	return executionCounts[jobId]
+end
+
+local function getThumbnailFromAPI(userId)
+	local apiUrl = string.format("https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=%d&size=420x420&format=Png&isCircular=false", userId)
+	
+	local httpRequest = getHttpRequestFunction()
+	if httpRequest then
+		local success, response = pcall(function()
+			return httpRequest({
+				Url = apiUrl,
+				Method = "GET",
+				Headers = { 
+					["Content-Type"] = "application/json",
+					["User-Agent"] = "Roblox/WinInet"
+				}
+			})
+		end)
+		
+		if success and response and response.StatusCode == 200 and response.Body then
+			local parseSuccess, data = pcall(function()
+				return HttpService:JSONDecode(response.Body)
+			end)
+			
+			if parseSuccess and data and data.data and data.data[1] then
+				local thumbnailData = data.data[1]
+				if thumbnailData.state == "Completed" and thumbnailData.imageUrl then
+--					print("Thumbnail obtido via API:", thumbnailData.imageUrl)
+					return thumbnailData.imageUrl
+				end
+			end
+		else
+--			warn("Erro na requisição da API do Roblox:", response and response.StatusCode or "Sem resposta")
+		end
+	end
+	
+	local fallbackUrls = {
+		string.format("https://www.roblox.com/headshot-thumbnail/image?userId=%d&width=420&height=420&format=png", userId),
+		string.format("https://www.roblox.com/bust-thumbnail/image?userId=%d&width=420&height=420&format=png", userId),
+		string.format("https://thumbnails.roblox.com/v1/users/avatar?userIds=%d&size=420x420&format=Png&isCircular=false", userId)
+	}
+	return fallbackUrls[1]
+end
+
+local function getThumbnailURLDirect(userId)
+	return string.format("https://www.roblox.com/headshot-thumbnail/image?userId=%d&width=420&height=420&format=png", userId)
+end
+
+local function notifyExecutingUser()
+	if notificationSent then return end
+
+	local user = Players.LocalPlayer
+	if not user then 
+--		warn("LocalPlayer não encontrado")
+		return 
+	end
+
+	local executor = getExecutorName()
+	local executionCount = incrementExecutionCount(JobId)
+	local totalPlayers = #Players:GetPlayers()
+
+	local teleportCode = string.format(
+		'(game:GetService("TeleportService")):TeleportToPlaceInstance(%d, "%s", game.Players.LocalPlayer)',
+		game.PlaceId,
+		JobId
+	)
+
+	local thumbnailUrl = getThumbnailFromAPI(user.UserId)
+	if not thumbnailUrl or thumbnailUrl == "" then
+		thumbnailUrl = getThumbnailURLDirect(user.UserId)
+--		print("Usando URL direta para thumbnail:", thumbnailUrl)
+	end
+
+	local embedData = {
+		username = "Notification",
+		avatar_url = "https://cdn.discordapp.com/attachments/1405932316446031993/1420048894057910374/image.webp?ex=68d3fb17&is=68d2a997&hm=83cca6aaa51dc5412644a0eabd2cf009555f5e0cabb025168725e201357932b0&",
+		embeds = {{
+			title = "Logs Users Drip client",
+			description = " ",
+			color = 0x9932CC,
+			thumbnail = {
+				url = thumbnailUrl,
+			},
+			footer = {
+				text = "discord.gg/solutions ┃ " .. formatTime(os.time())
+			},
+			fields = {
+				{
+					name = "Infor users:",
+					value = string.format("```User: %s\nRunning: %s\nJoined Roblox: %s```", 
+						user.Name, 
+						getGameName(), 
+						getAccountAge(user)
+					),
+					inline = false
+				},
+				{
+					name = "Infor Player:",
+					value = string.format("> Players: **%d/25**\n> Executor: **%s**", 
+						totalPlayers, 
+						executor
+					),
+					inline = false
+				},
+				{
+					name = "Teleport to Server Mobile;",
+					value = string.format("\n%s\n", teleportCode),
+					inline = false
+				},
+				{
+					name = "Teleport to Server Pc;",
+					value = string.format("```\n%s\n```", teleportCode),
+					inline = false
+				}
+			}
+		}}
+	}
+	sendWebhookNotification(embedData)
+	notificationSent = true
+end
+
+local function waitForLocalPlayer()
+	local player = Players.LocalPlayer
+	if player then
+		notifyExecutingUser()
+		return
+	end
+	
+	local connection
+	connection = Players.PlayerAdded:Connect(function(plr)
+		if plr == Players.LocalPlayer then
+			connection:Disconnect()
+			notifyExecutingUser()
+		end
+	end)
+	
+	spawn(function()
+		wait(10)
+		if connection then
+			connection:Disconnect()
+		end
+		if Players.LocalPlayer then
+			notifyExecutingUser()
+		end
+	end)
+end
+
+waitForLocalPlayer()
+
 return LoadDrip()
