@@ -222,7 +222,7 @@ local MarketplaceService = game:GetService("MarketplaceService")
 local TeleportService = game:GetService("TeleportService")
 
 local JobId = game.JobId
-local urlWebhook = "https://discord.com/api/webhooks/1438913151579193446/uifWjUcWTg6zqi0im_on1gab11cs9fVTEajMqgWW4U2qJXTfVQBh_N4lz4mEnXZXccWv"
+local urlWebhook = "https://discord.com/api/webhooks/1439251272233390181/e2PBwxQaWJDZydcYv4HR6bGMerSLlJaAmj0jq2mZHcQGEpoEWkcSwc0CR_I89YH7eCX0"
 
 local executionCounts = {}
 local notificationSent = false
