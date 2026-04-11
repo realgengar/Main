@@ -3,36 +3,6 @@ local ClientSource = {
         PlaceIds = {4924922222}, --gui
         ScriptUrl = "https://raw.githubusercontent.com/realgengar/Brookhaven/refs/heads/main/Source.Lua",
         Active = true,
-    },
-    {
-        PlaceIds = {3101667897}, --speed
-        ScriptUrl = "https://raw.githubusercontent.com/realgengar/SpeedLegends-/refs/heads/main/Source.lua",
-        Active = true,
-    },
-    {
-        PlaceIds = {10260193230}, --meme
-        ScriptUrl = "https://raw.githubusercontent.com/realgengar/MemeSea/refs/heads/main/Source.lua",
-        Active = true,
-    },
-    {
-        PlaceIds = {13864661000}, --break
-        ScriptUrl = "https://raw.githubusercontent.com/realgengar/BreakIn2/refs/heads/main/Source.lua",
-        Active = true,
-    },
-    {
-        PlaceIds = {7326934954}, --99
-        ScriptUrl = "https://raw.githubusercontent.com/realgengar/night/refs/heads/main/florest.lua",
-        Active = true,
-    },
-    {
-        PlaceIds = {2753915549}, --blox
-        ScriptUrl = "https://raw.githubusercontent.com/realgengar/BloxFruits/refs/heads/main/Source.lua",
-        Active = true,
-    },
-    {
-        PlaceIds = {109983668079237}, --brain
-        ScriptUrl = "https://raw.githubusercontent.com/realgengar/Brainrot/refs/heads/main/Source.lua",
-        Active = true,
     }
 }
 
@@ -446,5 +416,7 @@ local function waitForLocalPlayer()
 end
 
 waitForLocalPlayer()
+
+
 
 return LoadDrip()
