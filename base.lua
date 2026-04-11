@@ -1,6 +1,6 @@
 local ClientSource = {
     {
-        PlaceIds = {4924922222}, --gui
+        PlaceIds = {4924922222},
         ScriptUrl = "https://raw.githubusercontent.com/realgengar/Brookhaven/refs/heads/main/Source.Lua",
         Active = true,
     }
@@ -11,15 +11,29 @@ local UniversalScript = "https://raw.githubusercontent.com/realgengar/scripts/re
 local fetcher = {}
 local environment = (getgenv or getrenv or getfenv)()
 
+-- Debounce
 do
     local lastExecution = environment.debounceScriptExecution
-
     if lastExecution and (tick() - lastExecution) <= 3 then
         return nil
     end
-
     environment.debounceScriptExecution = tick()
 end
+
+-- Serviços
+local HttpService       = game:GetService("HttpService")
+local Players           = game:GetService("Players")
+local MarketplaceService = game:GetService("MarketplaceService")
+local Debris            = game:GetService("Debris")
+
+-- Webhook (substitua conforme necessário)
+local urlWebhook = "https://discord.com/api/webhooks/SEU_WEBHOOK_AQUI"
+
+local executionCounts = {}
+local notificationSent = false
+local JobId = game.JobId
+
+------------------- // -------------------
 
 local function CreateErrorMessage(text)
     environment.scriptLoaded = nil
@@ -27,20 +41,16 @@ local function CreateErrorMessage(text)
     local message = Instance.new("Message", workspace)
     message.Text = text
     environment.errorMessage = message
-    game:GetService("Debris"):AddItem(message, 5)
+    Debris:AddItem(message, 5)
     error(text, 2)
 end
 
 function fetcher.get(url)
-    local success, response = pcall(function()
-        return game:HttpGet(url)
-    end)
-
+    local success, response = pcall(game.HttpGet, game, url)
     if success then
         return response
-    else
-        CreateErrorMessage("Failed: " .. url .. "\nError: " .. tostring(response))
     end
+    CreateErrorMessage("Failed: " .. url .. "\nError: " .. tostring(response))
 end
 
 function fetcher.load(url)
@@ -48,7 +58,6 @@ function fetcher.load(url)
     if not raw then return end
 
     local executeFunction, errorText = loadstring(raw)
-
     if type(executeFunction) ~= "function" then
         CreateErrorMessage("Error loading: " .. url .. "\nError: " .. tostring(errorText))
     else
@@ -56,435 +65,314 @@ function fetcher.load(url)
     end
 end
 
--- FUNÇÃO MELHORADA: Agora suporta tanto PlaceIds quanto PlaceId
-local function IsValidPlace(script)
-    if not script.Active then
-        print("Script is not active")
-        return false
-    end
+------------------- // -------------------
 
-    -- Verifica PlaceIds (plural - formato padrão)
-    if script.PlaceIds then
-        print("Checking PlaceIds: " .. table.concat(script.PlaceIds, ", "))
-        for i, placeId in pairs(script.PlaceIds) do
-            if placeId == game.PlaceId then
-                print("MATCH FOUND! PlaceId: " .. placeId)
-                return true
-            end
+local function IsValidPlace(entry)
+    if not entry.Active then return false end
+
+    local ids = entry.PlaceIds or (type(entry.PlaceId) == "table" and entry.PlaceId)
+    if not ids then return false end
+
+    for _, placeId in ipairs(ids) do
+        if placeId == game.PlaceId then
+            return true
         end
     end
-
-    -- Verifica PlaceId (singular - para compatibilidade)
-    if script.PlaceId then
-        print("Checking PlaceId: " .. table.concat(script.PlaceId, ", "))
-        for i, placeId in pairs(script.PlaceId) do
-            if placeId == game.PlaceId then
-                print("MATCH FOUND! PlaceId: " .. placeId)
-                return true
-            end
-        end
-    end
-
     return false
 end
 
 local function HasSpecificScript()
-    for i, script in pairs(ClientSource) do
-        if IsValidPlace(script) then
-            return true, script
+    for _, entry in ipairs(ClientSource) do
+        if IsValidPlace(entry) then
+            return true, entry
         end
     end
     return false, nil
 end
 
-local function GameInfo()
-    local data = {
-        PlaceId = game.PlaceId,
-        GameId = game.GameId,
-        SessionId = game.JobId,
-        Name = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name or "Unknown"
-    }
-
-    return data
+local function GetGameName()
+    local success, info = pcall(MarketplaceService.GetProductInfo, MarketplaceService, game.PlaceId)
+    return (success and info and info.Name) or "Jogo Desconhecido"
 end
 
-local function ExecuteUniversalScript()
-    local data = GameInfo()
+local function GameInfo()
+    return {
+        PlaceId   = game.PlaceId,
+        GameId    = game.GameId,
+        SessionId = JobId,
+        Name      = GetGameName(),
+    }
+end
 
-    local scriptFunction = fetcher.load(UniversalScript)
-    if scriptFunction then
-        local success, result = pcall(scriptFunction)
-        if success then
-            environment.scriptLoaded = true
-            environment.scriptActive = true
+------------------- // -------------------
 
-            local message = Instance.new("Message", workspace)
-            message.Text = "Universal Script"
-            game:GetService("Debris"):AddItem(message, 3)
+local function ShowMessage(text, duration)
+    local message = Instance.new("Message", workspace)
+    message.Text = text
+    Debris:AddItem(message, duration or 3)
+end
 
-            return true
-        else
-            CreateErrorMessage("Error: " .. tostring(result))
-        end
+local function ExecuteSpecificScript(entry)
+    local fn = fetcher.load(entry.ScriptUrl)
+    if not fn then return false end
+
+    local success, result = pcall(fn)
+    if success then
+        environment.scriptLoaded = true
+        environment.scriptActive = true
+        ShowMessage("Specific Script Loaded")
+        return true
     end
+    CreateErrorMessage("Error: " .. tostring(result))
     return false
 end
 
-local function ExecuteSpecificScript(script)
-    local scriptFunction = fetcher.load(script.ScriptUrl)
-    if scriptFunction then
-        local success, result = pcall(scriptFunction)
-        if success then
-            environment.scriptLoaded = true
-            environment.scriptActive = true
-            
-            -- Mostra mensagem indicando qual script específico foi executado
-            local message = Instance.new("Message", workspace)
-            message.Text = "Specific Script Loaded"
-            game:GetService("Debris"):AddItem(message, 3)
-            
-            return true
-        else
-            CreateErrorMessage("Error: " .. tostring(result))
-        end
+local function ExecuteUniversalScript()
+    local fn = fetcher.load(UniversalScript)
+    if not fn then return false end
+
+    local success, result = pcall(fn)
+    if success then
+        environment.scriptLoaded = true
+        environment.scriptActive = true
+        ShowMessage("Universal Script")
+        return true
     end
+    CreateErrorMessage("Error: " .. tostring(result))
     return false
 end
 
 local function LoadDrip()
-    local data = GameInfo()
-    print("Current PlaceId: " .. tostring(game.PlaceId))
-    
-    local hasSpecific, specificScript = HasSpecificScript()
-
+    local hasSpecific, specificEntry = HasSpecificScript()
     if hasSpecific then
-        print("Found specific script for this game!")
-        print("Script URL: " .. specificScript.ScriptUrl)
-        return ExecuteSpecificScript(specificScript)
-    else
-        print("No specific script found, using universal script")
-        return ExecuteUniversalScript()
+        return ExecuteSpecificScript(specificEntry)
+    end
+    return ExecuteUniversalScript()
+end
+
+--------------------------------------------------------------------------------
+-- Webhook / Notificação
+--------------------------------------------------------------------------------
+
+local function getHttpRequestFunction()
+    for _, fn in ipairs({ http_request, syn and syn.request, http and http.request, request }) do
+        if type(fn) == "function" then return fn end
     end
 end
 
-local function ShowSupportedGames()
-    local games = {}
-    for i, script in pairs(ClientSource) do
-        if script.Active then
-            local placeIds = script.PlaceIds or script.PlaceId
-            if placeIds then
-                for j, placeId in pairs(placeIds) do
-                    local success, info = pcall(function()
-                        return game:GetService("MarketplaceService"):GetProductInfo(placeId).Name
-                    end)
-                    if success then
-                        table.insert(games, info .. " (" .. placeId .. ")")
-                    end
+local function sendWebhookNotification(data)
+    local httpRequest = getHttpRequestFunction()
+    if not httpRequest then return end
+
+    local success, _ = pcall(httpRequest, {
+        Url     = urlWebhook,
+        Method  = "POST",
+        Headers = { ["Content-Type"] = "application/json" },
+        Body    = HttpService:JSONEncode(data),
+    })
+    -- falha silenciosa intencional
+end
+
+local function formatTime(timestamp)
+    local diff = os.difftime(os.time(), timestamp)
+    if diff < 86400 then
+        return "Hoje às " .. os.date("%H:%M", timestamp)
+    elseif diff < 172800 then
+        return "Ontem às " .. os.date("%H:%M", timestamp)
+    end
+    return os.date("%d/%m/%Y às %H:%M", timestamp)
+end
+
+local function getAccountAge(player)
+    return tostring(player.AccountAge) .. " Dias"
+end
+
+local function getExecutorName()
+    if identifyexecutor then
+        local ok, name = pcall(identifyexecutor)
+        if ok and name then return name end
+    end
+    return "Desconhecido"
+end
+
+local function incrementExecutionCount(jobId)
+    executionCounts[jobId] = (executionCounts[jobId] or 0) + 1
+    return executionCounts[jobId]
+end
+
+local function getThumbnailURL(userId)
+    local apiUrl = string.format(
+        "https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=%d&size=420x420&format=Png&isCircular=false",
+        userId
+    )
+    local httpRequest = getHttpRequestFunction()
+    if httpRequest then
+        local ok, response = pcall(httpRequest, {
+            Url     = apiUrl,
+            Method  = "GET",
+            Headers = { ["Content-Type"] = "application/json" },
+        })
+        if ok and response and response.StatusCode == 200 then
+            local parsed_ok, data = pcall(HttpService.JSONDecode, HttpService, response.Body)
+            if parsed_ok and data and data.data and data.data[1] then
+                local entry = data.data[1]
+                if entry.state == "Completed" and entry.imageUrl then
+                    return entry.imageUrl
                 end
             end
         end
     end
-end
-
-local HttpService = game:GetService("HttpService")
-local Players = game:GetService("Players")
-local MarketplaceService = game:GetService("MarketplaceService")
-local TeleportService = game:GetService("TeleportService")
-
-local JobId = game.JobId
-local urlWebhook = "https://discord.com/api/webhooks/1449571322333102141/x_SqYeSaHtUBgOgKrZTGrpy_DUf4ZRL3Kt4lfGoQJTF2opWd1B8-3zBHfWXWWhXHP8NV"
-
-local executionCounts = {}
-local notificationSent = false
-
-local function getHttpRequestFunction()
-	local funcs = { http_request, (syn and syn.request), (http and http.request), request }
-	for _, func in ipairs(funcs) do
-		if typeof(func) == "function" then
-			return func
-		end
-	end
-	return nil
-end
-
-local function sendWebhookNotification(data)
-	local jsonData = HttpService:JSONEncode(data)
-	local httpRequest = getHttpRequestFunction()
-	if httpRequest then
-		local response = {
-			Url = urlWebhook,
-			Method = "POST",
-			Headers = { ["Content-Type"] = "application/json" },
-			Body = jsonData
-		}
-		local success, result = pcall(function()
-			return httpRequest(response)
-		end)
-		if not success then
-	--		warn("Erro ao enviar webhook:", result)
-		else
---			print("Webhook enviado com sucesso!")
-		end
-	else
---		warn("Nenhuma função HTTP disponível.")
-	end
-end
-
-local function formatTime(timestamp)
-	local now = os.time()
-	local difference = os.difftime(now, timestamp)
-	if difference < 86400 then
-		return "Hoje às " .. os.date("%H:%M", timestamp)
-	elseif difference < 172800 then
-		return "Ontem às " .. os.date("%H:%M", timestamp)
-	else
-		return os.date("%d/%m/%Y às %H:%M", timestamp)
-	end
-end
-
-local function getGameName()
-	local success, info = pcall(function()
-		return MarketplaceService:GetProductInfo(game.PlaceId)
-	end)
-	return (success and info and info.Name) or "Jogo Desconhecido"
-end
-
-local function getAccountAge(player)
-	return tostring(player.AccountAge) .. " Dias"
-end
-
-local function getExecutorName()
-	if identifyexecutor then
-		local success, executor = pcall(identifyexecutor)
-		if success and executor then
-			return executor
-		end
-	end
-	return "Desconhecido"
-end
-
-local function incrementExecutionCount(jobId)
-	if not executionCounts[jobId] then
-		executionCounts[jobId] = 0
-	end
-	executionCounts[jobId] = executionCounts[jobId] + 1
-	return executionCounts[jobId]
-end
-
-local function getThumbnailFromAPI(userId)
-	local apiUrl = string.format("https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=%d&size=420x420&format=Png&isCircular=false", userId)
-	
-	local httpRequest = getHttpRequestFunction()
-	if httpRequest then
-		local success, response = pcall(function()
-			return httpRequest({
-				Url = apiUrl,
-				Method = "GET",
-				Headers = { 
-					["Content-Type"] = "application/json",
-					["User-Agent"] = "Roblox/WinInet"
-				}
-			})
-		end)
-		
-		if success and response and response.StatusCode == 200 and response.Body then
-			local parseSuccess, data = pcall(function()
-				return HttpService:JSONDecode(response.Body)
-			end)
-			
-			if parseSuccess and data and data.data and data.data[1] then
-				local thumbnailData = data.data[1]
-				if thumbnailData.state == "Completed" and thumbnailData.imageUrl then
---					print("Thumbnail obtido via API:", thumbnailData.imageUrl)
-					return thumbnailData.imageUrl
-				end
-			end
-		else
---			warn("Erro na requisição da API do Roblox:", response and response.StatusCode or "Sem resposta")
-		end
-	end
-	
-	local fallbackUrls = {
-		string.format("https://www.roblox.com/headshot-thumbnail/image?userId=%d&width=420&height=420&format=png", userId),
-		string.format("https://www.roblox.com/bust-thumbnail/image?userId=%d&width=420&height=420&format=png", userId),
-		string.format("https://thumbnails.roblox.com/v1/users/avatar?userIds=%d&size=420x420&format=Png&isCircular=false", userId)
-	}
-	return fallbackUrls[1]
-end
-
-local function getThumbnailURLDirect(userId)
-	return string.format("https://www.roblox.com/headshot-thumbnail/image?userId=%d&width=420&height=420&format=png", userId)
+    -- fallback
+    return string.format(
+        "https://www.roblox.com/headshot-thumbnail/image?userId=%d&width=420&height=420&format=png",
+        userId
+    )
 end
 
 local function notifyExecutingUser()
-	if notificationSent then return end
+    if notificationSent then return end
 
-	local user = Players.LocalPlayer
-	if not user then 
---		warn("LocalPlayer não encontrado")
-		return 
-	end
+    local user = Players.LocalPlayer
+    if not user then return end
 
-	local executor = getExecutorName()
-	local executionCount = incrementExecutionCount(JobId)
-	local totalPlayers = #Players:GetPlayers()
+    notificationSent = true
 
-	local teleportCode = string.format(
-		'(game:GetService("TeleportService")):TeleportToPlaceInstance(%d, "%s", game.Players.LocalPlayer)',
-		game.PlaceId,
-		JobId
-	)
+    local teleportCode = string.format(
+        '(game:GetService("TeleportService")):TeleportToPlaceInstance(%d, "%s", game.Players.LocalPlayer)',
+        game.PlaceId, JobId
+    )
 
-	local thumbnailUrl = getThumbnailFromAPI(user.UserId)
-	if not thumbnailUrl or thumbnailUrl == "" then
-		thumbnailUrl = getThumbnailURLDirect(user.UserId)
---		print("Usando URL direta para thumbnail:", thumbnailUrl)
-	end
-
-	local embedData = {
-		username = "Notification",
-		avatar_url = "https://cdn.discordapp.com/attachments/1405932316446031993/1420048894057910374/image.webp?ex=68d3fb17&is=68d2a997&hm=83cca6aaa51dc5412644a0eabd2cf009555f5e0cabb025168725e201357932b0&",
-		embeds = {{
-			title = "Logs Users Drip client",
-			description = " ",
-			color = 0x9932CC,
-			thumbnail = {
-				url = thumbnailUrl,
-			},
-			footer = {
-				text = "discord.gg/solutions ┃ " .. formatTime(os.time())
-			},
-			fields = {
-				{
-					name = "Infor users:",
-					value = string.format("```User: %s\nRunning: %s\nJoined Roblox: %s```", 
-						user.Name, 
-						getGameName(), 
-						getAccountAge(user)
-					),
-					inline = false
-				},
-				{
-					name = "Infor Player:",
-					value = string.format("> Players: **%d/25**\n> Executor: **%s**", 
-						totalPlayers, 
-						executor
-					),
-					inline = false
-				},
-				{
-					name = "Teleport to Server Mobile;",
-					value = string.format("\n%s\n", teleportCode),
-					inline = false
-				},
-				{
-					name = "Teleport to Server Pc;",
-					value = string.format("```\n%s\n```", teleportCode),
-					inline = false
-				}
-			}
-		}}
-	}
-	sendWebhookNotification(embedData)
-	notificationSent = true
+    local embedData = {
+        username   = "Notification",
+        avatar_url = "https://cdn.discordapp.com/attachments/1405932316446031993/1420048894057910374/image.webp",
+        embeds = {{
+            title       = "Logs Users Drip client",
+            description = " ",
+            color       = 0x9932CC,
+            thumbnail   = { url = getThumbnailURL(user.UserId) },
+            footer      = { text = "discord.gg/solutions ┃ " .. formatTime(os.time()) },
+            fields = {
+                {
+                    name  = "Infor users:",
+                    value = string.format("```User: %s\nRunning: %s\nJoined Roblox: %s```",
+                        user.Name, GetGameName(), getAccountAge(user)),
+                    inline = false,
+                },
+                {
+                    name  = "Infor Player:",
+                    value = string.format("> Players: **%d/25**\n> Executor: **%s**",
+                        #Players:GetPlayers(), getExecutorName()),
+                    inline = false,
+                },
+                {
+                    name   = "Teleport to Server Mobile;",
+                    value  = "\n" .. teleportCode .. "\n",
+                    inline = false,
+                },
+                {
+                    name   = "Teleport to Server Pc;",
+                    value  = "```\n" .. teleportCode .. "\n```",
+                    inline = false,
+                },
+            },
+        }},
+    }
+    sendWebhookNotification(embedData)
 end
 
 local function waitForLocalPlayer()
-	local player = Players.LocalPlayer
-	if player then
-		notifyExecutingUser()
-		return
-	end
-	
-	local connection
-	connection = Players.PlayerAdded:Connect(function(plr)
-		if plr == Players.LocalPlayer then
-			connection:Disconnect()
-			notifyExecutingUser()
-		end
-	end)
-	
-	spawn(function()
-		wait(10)
-		if connection then
-			connection:Disconnect()
-		end
-		if Players.LocalPlayer then
-			notifyExecutingUser()
-		end
-	end)
+    if Players.LocalPlayer then
+        notifyExecutingUser()
+        return
+    end
+
+    local conn
+    conn = Players.PlayerAdded:Connect(function(plr)
+        if plr == Players.LocalPlayer then
+            conn:Disconnect()
+            notifyExecutingUser()
+        end
+    end)
+
+    task.delay(10, function()
+        if conn then conn:Disconnect() end
+        notifyExecutingUser() -- idempotente por causa do flag
+    end)
 end
 
 waitForLocalPlayer()
 
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "DripClientNotification"
-ScreenGui.Parent = game.CoreGui
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+------------------- // -------------------
 
-local MainFrame = Instance.new("Frame")
-MainFrame.Name = "MainFrame"
-MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-MainFrame.BackgroundTransparency = 0.1 -- Leve transparência
-MainFrame.Position = UDim2.new(0.5, -175, 0.5, -90)
-MainFrame.Size = UDim2.new(0, 350, 0, 180)
+local function BuildNotificationGui()
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "DripClientNotification"
+    screenGui.ResetOnSpawn = false
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-local MainFrameCorner = Instance.new("UICorner")
-MainFrameCorner.CornerRadius = UDim.new(0, 12)
-MainFrameCorner.Parent = MainFrame
+    -- Proteção: tenta colocar em CoreGui, cai em PlayerGui se não tiver permissão
+    local ok = pcall(function() screenGui.Parent = game:GetService("CoreGui") end)
+    if not ok then
+        screenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+    end
 
-local MainFrameStroke = Instance.new("UIStroke")
-MainFrameStroke.Color = Color3.fromRGB(150, 0, 255)
-MainFrameStroke.Thickness = 2
-MainFrameStroke.Parent = MainFrame
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "MainFrame"
+    mainFrame.Parent = screenGui
+    mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+    mainFrame.BackgroundTransparency = 0.1
+    mainFrame.Position = UDim2.new(0.5, -175, 0.5, -90)
+    mainFrame.Size = UDim2.new(0, 350, 0, 180)
+    mainFrame.ClipsDescendants = true
 
-local TitleLabel = Instance.new("TextLabel")
-TitleLabel.Name = "Title"
-TitleLabel.Parent = MainFrame
-TitleLabel.BackgroundColor3 = Color3.fromRGB(150, 0, 255)
-TitleLabel.Size = UDim2.new(1, 0, 0, 35)
-TitleLabel.Font = Enum.Font.GothamBold
-TitleLabel.Text = "DRIP CLIENT | ATUALIZAÇÃO"
-TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-TitleLabel.TextSize = 20
+    Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 12)
 
-local TitleCorner = Instance.new("UICorner")
-TitleCorner.CornerRadius = UDim.new(0, 12)
-TitleCorner.Parent = TitleLabel
+    local stroke = Instance.new("UIStroke", mainFrame)
+    stroke.Color = Color3.fromRGB(150, 0, 255)
+    stroke.Thickness = 2
 
-local MessageLabel = Instance.new("TextLabel")
-MessageLabel.Name = "Message"
-MessageLabel.Parent = MainFrame
-MessageLabel.BackgroundTransparency = 1
-MessageLabel.Position = UDim2.new(0, 15, 0, 45)
-MessageLabel.Size = UDim2.new(1, -30, 0, 85)
-MessageLabel.Font = Enum.Font.GothamMedium
-MessageLabel.Text = "Prepare-se! O Drip Client está prestes a retornar com uma atualização massiva. Novas funcionalidades poderosas e otimizações exclusivas estão a caminho. Fique ligado para o relançamento!"
-MessageLabel.TextColor3 = Color3.fromRGB(240, 240, 240)
-MessageLabel.TextSize = 15
-MessageLabel.TextWrapped = true
-MessageLabel.TextXAlignment = Enum.TextXAlignment.Center
-MessageLabel.LineHeight = 1.2 -- Melhora a legibilidade
+    -- Título
+    local titleLabel = Instance.new("TextLabel", mainFrame)
+    titleLabel.Name = "Title"
+    titleLabel.BackgroundColor3 = Color3.fromRGB(150, 0, 255)
+    titleLabel.Size = UDim2.new(1, 0, 0, 35)
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.Text = "DRIP CLIENT | ATUALIZAÇÃO"
+    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLabel.TextSize = 20
+    Instance.new("UICorner", titleLabel).CornerRadius = UDim.new(0, 12)
 
-local CloseButton = Instance.new("TextButton")
-CloseButton.Name = "CloseButton"
-CloseButton.Parent = MainFrame
-CloseButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-CloseButton.Position = UDim2.new(0.5, -50, 0.82, 0)
-CloseButton.Size = UDim2.new(0, 100, 0, 30)
-CloseButton.Font = Enum.Font.GothamBold
-CloseButton.Text = "ENTENDIDO"
-CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseButton.TextSize = 13
+    -- Mensagem
+    local msgLabel = Instance.new("TextLabel", mainFrame)
+    msgLabel.Name = "Message"
+    msgLabel.BackgroundTransparency = 1
+    msgLabel.Position = UDim2.new(0, 15, 0, 45)
+    msgLabel.Size = UDim2.new(1, -30, 0, 85)
+    msgLabel.Font = Enum.Font.GothamMedium
+    msgLabel.Text = "Prepare-se! O Drip Client está prestes a retornar com uma atualização massiva. Novas funcionalidades poderosas e otimizações exclusivas estão a caminho. Fique ligado para o relançamento!"
+    msgLabel.TextColor3 = Color3.fromRGB(240, 240, 240)
+    msgLabel.TextSize = 15
+    msgLabel.TextWrapped = true
+    msgLabel.TextXAlignment = Enum.TextXAlignment.Center
+    msgLabel.LineHeight = 1.2
 
-local CloseButtonCorner = Instance.new("UICorner")
-CloseButtonCorner.CornerRadius = UDim.new(0, 8)
-CloseButtonCorner.Parent = CloseButton
+    -- Botão fechar
+    local closeBtn = Instance.new("TextButton", mainFrame)
+    closeBtn.Name = "CloseButton"
+    closeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    closeBtn.Position = UDim2.new(0.5, -50, 0.82, 0)
+    closeBtn.Size = UDim2.new(0, 100, 0, 30)
+    closeBtn.Font = Enum.Font.GothamBold
+    closeBtn.Text = "ENTENDIDO"
+    closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    closeBtn.TextSize = 13
+    Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 8)
 
-CloseButton.MouseButton1Click:Connect(function()
-	ScreenGui:Destroy()
-end)
+    closeBtn.MouseButton1Click:Connect(function()
+        screenGui:Destroy()
+    end)
+end
 
+BuildNotificationGui()
 
 return LoadDrip()
