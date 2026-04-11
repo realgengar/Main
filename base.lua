@@ -25,10 +25,7 @@ local HttpService       = game:GetService("HttpService")
 local Players           = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
 local Debris            = game:GetService("Debris")
-
--- Webhook (substitua conforme necessário)
 local urlWebhook = "https://discord.com/api/webhooks/SEU_WEBHOOK_AQUI"
-
 local executionCounts = {}
 local notificationSent = false
 local JobId = game.JobId
