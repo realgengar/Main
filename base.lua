@@ -417,6 +417,74 @@ end
 
 waitForLocalPlayer()
 
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "DripClientNotification"
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+MainFrame.BackgroundTransparency = 0.1 -- Leve transparência
+MainFrame.Position = UDim2.new(0.5, -175, 0.5, -90)
+MainFrame.Size = UDim2.new(0, 350, 0, 180)
+
+local MainFrameCorner = Instance.new("UICorner")
+MainFrameCorner.CornerRadius = UDim.new(0, 12)
+MainFrameCorner.Parent = MainFrame
+
+local MainFrameStroke = Instance.new("UIStroke")
+MainFrameStroke.Color = Color3.fromRGB(150, 0, 255)
+MainFrameStroke.Thickness = 2
+MainFrameStroke.Parent = MainFrame
+
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Name = "Title"
+TitleLabel.Parent = MainFrame
+TitleLabel.BackgroundColor3 = Color3.fromRGB(150, 0, 255)
+TitleLabel.Size = UDim2.new(1, 0, 0, 35)
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.Text = "DRIP CLIENT | ATUALIZAÇÃO"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.TextSize = 20
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 12)
+TitleCorner.Parent = TitleLabel
+
+local MessageLabel = Instance.new("TextLabel")
+MessageLabel.Name = "Message"
+MessageLabel.Parent = MainFrame
+MessageLabel.BackgroundTransparency = 1
+MessageLabel.Position = UDim2.new(0, 15, 0, 45)
+MessageLabel.Size = UDim2.new(1, -30, 0, 85)
+MessageLabel.Font = Enum.Font.GothamMedium
+MessageLabel.Text = "Prepare-se! O Drip Client está prestes a retornar com uma atualização massiva. Novas funcionalidades poderosas e otimizações exclusivas estão a caminho. Fique ligado para o relançamento!"
+MessageLabel.TextColor3 = Color3.fromRGB(240, 240, 240)
+MessageLabel.TextSize = 15
+MessageLabel.TextWrapped = true
+MessageLabel.TextXAlignment = Enum.TextXAlignment.Center
+MessageLabel.LineHeight = 1.2 -- Melhora a legibilidade
+
+local CloseButton = Instance.new("TextButton")
+CloseButton.Name = "CloseButton"
+CloseButton.Parent = MainFrame
+CloseButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+CloseButton.Position = UDim2.new(0.5, -50, 0.82, 0)
+CloseButton.Size = UDim2.new(0, 100, 0, 30)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.Text = "ENTENDIDO"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 13
+
+local CloseButtonCorner = Instance.new("UICorner")
+CloseButtonCorner.CornerRadius = UDim.new(0, 8)
+CloseButtonCorner.Parent = CloseButton
+
+CloseButton.MouseButton1Click:Connect(function()
+	ScreenGui:Destroy()
+end)
 
 
 return LoadDrip()
