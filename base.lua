@@ -1,7 +1,7 @@
 local ClientSource = {
     {
         PlaceIds = {4924922222},
-        ScriptUrl = "https://raw.githubusercontent.com/realgengar/Brookhaven/refs/heads/main/Source.Lua",
+        ScriptUrl = "https://raw.githubusercontent.com/realgengar/Brookhaven/refs/heads/main/Source.lua",
         Active = true,
     }
 }
